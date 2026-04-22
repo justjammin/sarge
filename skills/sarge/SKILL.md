@@ -113,15 +113,16 @@ When invoked, first check the user's message for a sub-command:
 
 1. **Load config** — read `sarge.config.json`. If missing, prompt: "Run 'sarge analyze' first."
 2. **Get diff** — `git log origin/main..HEAD --name-only --pretty=format:""` → list of changed files (committed only, not working tree)
-3. **For each changed file** → route to language adapter checks (see Check Catalog)
-4. **Impact tracing** — for qualifying changes only (see Impact Tracing)
-5. **Test execution** — map changed files → test files, run affected tests
-6. **Compile findings** — group by P0 / P1 / P2
-7. **Determine status** → 🔴/🟡/🟢 (see Severity Tiers)
-8. **Write status file** → `ctx_shell('printf "red|yellow|green" > "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.sarge-status"')` — fires immediately after scoring so the statusline badge updates on next render cycle
-9. **Read existing sitrep.md** → compress previous runs to one-line comments
-10. **Prepend new SITREP block** → write sitrep.md
-11. **Emit terminal summary** (see Output Contract)
+3. **IDE diagnostics (first pass)** — call `mcp__ide__getDiagnostics` for each changed file. Map LSP severity → sarge severity (error → P0/P1, warning → P1/P2, hint/info → P2). Deduplicate against tool-based findings in step 4. Note in SITREP under CHECKED as "IDE LSP: N diagnostics".
+4. **For each changed file** → route to language adapter checks (see Check Catalog). Skip checks already caught by IDE diagnostics to avoid duplication.
+5. **Impact tracing** — for qualifying changes only (see Impact Tracing)
+6. **Test execution** — map changed files → test files, run affected tests
+7. **Compile findings** — group by P0 / P1 / P2
+8. **Determine status** → 🔴/🟡/🟢 (see Severity Tiers)
+9. **Write status file** → `echo "red|yellow|green" > "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.sarge-status"`
+10. **Read existing sitrep.md** → compress previous runs to one-line comments
+11. **Prepend new SITREP block** → write sitrep.md
+12. **Emit terminal summary** (see Output Contract)
 
 ---
 
