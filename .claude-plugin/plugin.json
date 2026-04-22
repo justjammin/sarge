@@ -1,0 +1,22 @@
+{
+  "name": "sarge",
+  "description": "PR Review Gate Enforcer for Claude Code. Static analysis across PHP/WordPress, JS/TS, Python. Catches issues before human review — P0/P1/P2 severity, blast radius tracing, test execution.",
+  "author": {
+    "name": "Jamin Echols",
+    "url": "https://github.com/justjammin"
+  },
+  "homepage": "https://github.com/justjammin/sarge",
+  "repository": "https://github.com/justjammin/sarge",
+  "license": "MIT",
+  "keywords": [
+    "pr-review",
+    "static-analysis",
+    "code-review",
+    "php",
+    "wordpress",
+    "typescript",
+    "python",
+    "productivity"
+  ],
+  "skills": "./skills/"
+}

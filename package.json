@@ -1,0 +1,39 @@
+{
+  "name": "sarge-ai",
+  "version": "1.0.0",
+  "description": "PR Review Gate Enforcer for Claude Code. Static analysis across PHP/WordPress, JS/TS, Python. P0/P1/P2 severity with blast radius tracing.",
+  "bin": {
+    "sarge-ai": "./install.js"
+  },
+  "keywords": [
+    "pr-review",
+    "static-analysis",
+    "code-review",
+    "claude",
+    "claude-code",
+    "skill",
+    "wordpress",
+    "php",
+    "typescript",
+    "python"
+  ],
+  "author": {
+    "name": "justjammin",
+    "url": "https://github.com/justjammin"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/justjammin/sarge"
+  },
+  "homepage": "https://github.com/justjammin/sarge",
+  "files": [
+    "install.js",
+    "skills/",
+    "hooks/",
+    ".claude-plugin/"
+  ],
+  "engines": {
+    "node": ">=16"
+  }
+}
