@@ -118,7 +118,7 @@ When invoked, first check the user's message for a sub-command:
 5. **Test execution** — map changed files → test files, run affected tests
 6. **Compile findings** — group by P0 / P1 / P2
 7. **Determine status** → 🔴/🟡/🟢 (see Severity Tiers)
-8. **Write status file** → `echo "red|yellow|green" > "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.sarge-status"`
+8. **Write status file** → `ctx_shell('printf "red|yellow|green" > "${CLAUDE_CONFIG_DIR:-$HOME/.claude}/.sarge-status"')` — fires immediately after scoring so the statusline badge updates on next render cycle
 9. **Read existing sitrep.md** → compress previous runs to one-line comments
 10. **Prepend new SITREP block** → write sitrep.md
 11. **Emit terminal summary** (see Output Contract)

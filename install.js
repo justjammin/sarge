@@ -12,6 +12,8 @@ const SETTINGS_PATH    = path.join(CLAUDE_DIR, 'settings.json');
 const HOOKS_DIR        = path.join(CLAUDE_DIR, 'hooks');
 const STATUSLINE_SRC   = path.join(__dirname, 'hooks', 'sarge-statusline.sh');
 const STATUSLINE_DEST  = path.join(HOOKS_DIR, 'sarge-statusline.sh');
+const HOOK_COMMAND     = `node "${path.join(__dirname, 'hooks', 'sarge-activate.js')}"`;
+
 
 function install() {
   if (!fs.existsSync(CLAUDE_DIR)) {
@@ -53,6 +55,28 @@ function install() {
     console.log('  Status: [SARGE] badge chained to existing statusLine');
   } else {
     console.log('  Status: [SARGE] badge already in statusLine (skipped)');
+  }
+
+  // Register SessionStart hook
+  if (!settings.hooks) settings.hooks = {};
+  if (!settings.hooks.SessionStart) settings.hooks.SessionStart = [];
+
+  const alreadyRegistered = settings.hooks.SessionStart.some(
+    entry => entry.hooks && entry.hooks.some(h => h.command && h.command.includes('sarge-activate.js'))
+  );
+
+  if (!alreadyRegistered) {
+    settings.hooks.SessionStart.push({
+      hooks: [{
+        type: 'command',
+        command: HOOK_COMMAND,
+        timeout: 10,
+        statusMessage: 'Loading SARGE...'
+      }]
+    });
+    console.log('  Hook:  SessionStart → hooks/sarge-activate.js');
+  } else {
+    console.log('  Hook:  SessionStart already registered (skipped)');
   }
 
   fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2) + '\n');
