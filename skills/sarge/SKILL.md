@@ -146,7 +146,7 @@ Run checks only when `sarge.config.json` has `"php": {"enabled": true}`.
 | Missing nonce verification on form/AJAX handlers | WPCS | P0 |
 | Hook/filter callback signature mismatch | PHPStan | P0 |
 | Unused variables / dead code | PHPStan | P2 |
-| Missing return type hints on public methods | PHPStan | P1 |
+| Missing return type hints on any method (public/protected/private) | PHPStan + Pattern: `function\s+\w+\s*\([^)]*\)\s*\{` with no `:` return type | P1 |
 | Missing docblock on public methods | Pattern scan | P2 |
 
 ### JavaScript / TypeScript
