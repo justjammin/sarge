@@ -113,7 +113,16 @@ When invoked, first check the user's message for a sub-command:
 
 1. **Load config** — read `sarge.config.json`. If missing, prompt: "Run 'sarge analyze' first."
 2. **Get diff** — `git log origin/main..HEAD --name-only --pretty=format:""` → list of changed files (committed only, not working tree)
-3. **IDE diagnostics (first pass)** — call `mcp__ide__getDiagnostics` for each changed file. Map LSP severity → sarge severity (error → P0/P1, warning → P1/P2, hint/info → P2). Deduplicate against tool-based findings in step 4. Note in SITREP under CHECKED as "IDE LSP: N diagnostics".
+3. **IDE diagnostics (per-file sequential)**
+   a. Probe PhpStorm: `curl -s http://localhost:63342/api/about`. If response contains `"name"`, PhpStorm is running. If not, skip to step 4 and note "IDE LSP: PhpStorm not reachable — skipped".
+   b. Filter diff to source files only — exclude: `dist/`, `*.min.js`, `*.map`, `*.xml`, `*.css`, test stubs. These do not produce useful IDE diagnostics.
+   c. **For each source file, one at a time:**
+      - Open via CLI: `/Applications/PhpStorm.app/Contents/MacOS/phpstorm "<abs_path>"`
+      - Sleep 4s to allow PhpStorm to index the file
+      - Call `mcp__ide__getDiagnostics` with the exact file URI
+      - Record findings; map severity: `error` → P0/P1, `warning` → P1/P2, `hint`/`info` → P2
+      - Move to next file (no close available — tab accumulates, acceptable tradeoff)
+   d. Note in SITREP under CHECKED as "IDE LSP (PhpStorm): N diagnostics across M files".
 4. **For each changed file** → route to language adapter checks (see Check Catalog). Skip checks already caught by IDE diagnostics to avoid duplication.
 5. **Impact tracing** — for qualifying changes only (see Impact Tracing)
 6. **Test execution** — map changed files → test files, run affected tests
