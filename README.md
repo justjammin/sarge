@@ -43,12 +43,12 @@ Green = P0 zero and P1 zero.
 
 | Language | Tools |
 |----------|-------|
-| PHP / WordPress | PHPCS, PHPStan, PHPMD, WPCS |
+| PHP / WordPress | `get_file_problems` (JetBrains IDE MCP — primary), php-cs-fixer, phpcs/WPCS, PHPStan, PHPMD |
 | JavaScript | ESLint |
 | TypeScript | ESLint, tsc --noEmit |
 | Python | Ruff, Mypy |
 
-Missing binary → SARGE skips it and notes the gap. The run completes regardless.
+`get_file_problems` is the same method across all JetBrains IDEs (PhpStorm, IntelliJ, WebStorm, Rider). Enable the built-in MCP server in IDE settings to activate it. Missing binary or disconnected IDE → SARGE skips and notes the gap. The run completes regardless.
 
 ---
 
@@ -133,7 +133,8 @@ Add `sitrep.md` to `.gitignore` for a local artifact, or commit it for team visi
 
 - Claude Code
 - Node.js 16+
-- The static analysis tools for your stack — PHPCS, PHPStan, ESLint, tsc, ruff, mypy. Install what you need.
+- A JetBrains IDE with the built-in MCP server enabled (PhpStorm, IntelliJ, WebStorm, Rider, etc.) — for `get_file_problems` PHP diagnostics
+- Optional: php-cs-fixer, phpcs, PHPStan, ESLint, tsc, ruff, mypy — SARGE skips any that aren't installed
 
 ---
 
