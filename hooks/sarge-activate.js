@@ -34,7 +34,8 @@ try {
   }
   const statusLineCmd = `bash "${statuslineDest}"`;
   const already = settings.statusLine && settings.statusLine.command &&
-    settings.statusLine.command.includes('sarge-statusline');
+    (settings.statusLine.command.includes('sarge-statusline') ||
+     settings.statusLine.command.includes('combined-statusline'));
   if (!already) {
     if (!settings.statusLine) {
       settings.statusLine = { type: 'command', command: statusLineCmd };
