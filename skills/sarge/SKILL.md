@@ -238,10 +238,10 @@ When invoked, first check the user's message for a sub-command:
    ### Setup required (one-time, not automatic)
 
    **JetBrains MCP server is OFF by default.** Activate in PhpStorm/IDEA:
-   `Settings → Tools → AI Assistant → Model Context Protocol (MCP)` → enable **"Use built-in MCP server"**
+   `Settings → Tools → MCP Server` → enable **"Use built-in MCP server"**
 
    **Brave mode is also OFF by default. Turn it on.** Without brave mode, every `get_file_problems` call pops an IDE confirmation dialog, stalling the parallel agents. With brave mode on, the MCP server executes tool calls immediately without asking.
-   Enable: `Settings → Tools → AI Assistant → Model Context Protocol (MCP)` → check **"Allow dangerous (write) tools without confirmation"** (brave mode).
+   Enable: `Settings → Tools → MCP Server` → check **"Allow dangerous (write) tools without confirmation"** (brave mode).
 
    > **Why brave mode matters for sarge:** sarge spawns 8+ parallel agents all calling `get_file_problems` concurrently. Each confirmation dialog blocks one agent until you click. Without brave mode, a 57-file scan becomes 57 click-to-unblock dialogs. With brave mode, it runs fully unattended. `get_file_problems` is read-only (analysis only, no writes) so the "dangerous" label is misleading — it just means it can open files in the IDE without asking.
 
