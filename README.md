@@ -54,11 +54,11 @@ Green = P0 zero and P1 zero.
 
 ## Checks
 
-**P0:** SQL injection, XSS, missing nonce verification, missing capability checks, hardcoded secrets, `eval()`.
+**P0:** SQL injection, XSS, missing nonce verification, missing capability checks, hardcoded secrets, `eval()`, Phan type errors, undefined methods/properties.
 
-**P1:** Coding standards, missing return types, deprecated functions, unhandled async errors.
+**P1:** Coding standards (php-cs-fixer), missing return types, deprecated functions, unhandled async errors, Phan warnings.
 
-**P2:** Unused variables, unused exports, missing docblocks.
+**P2:** Unused variables, unused exports, missing docblocks, Phan info/hints.
 
 ---
 
@@ -134,7 +134,61 @@ Add `sitrep.md` to `.gitignore` for a local artifact, or commit it for team visi
 - Claude Code
 - Node.js 16+
 - A JetBrains IDE with the built-in MCP server enabled (PhpStorm, IntelliJ, WebStorm, Rider, etc.) — for `get_file_problems` PHP diagnostics
-- Optional: php-cs-fixer, phpcs, PHPStan, ESLint, tsc, ruff, mypy — SARGE skips any that aren't installed
+- Optional: php-cs-fixer, phpcs, Phan, PHPStan, ESLint, tsc, ruff, mypy — SARGE skips any that aren't installed
+
+### PHP Static Analysis (Phan)
+
+Phan runs via Docker and catches type errors, undefined methods, and wrong signatures — equivalent coverage to IDE inspections.
+
+**Configure in `sarge.config.json`:**
+```json
+{
+  "languages": {
+    "php": {
+      "phan": {
+        "enabled": true,
+        "docker_image": "<your-phan-docker-image>",
+        "global_config": "app/.phan/config.php"
+      }
+    }
+  }
+}
+```
+
+**Prerequisite:** Your code must be in Phan's scope. Check one of:
+1. `src/` is listed in `.phan/config.php` → `directory_list`
+2. Project has its own `.phan/config.php`
+
+If neither exists, SARGE notes `"Phan: not in scope — skipped"` and falls back to `php -l` (syntax errors only).
+
+**Scoped to diff files:**
+```bash
+# File list must be inside the Docker-mounted volume
+git log origin/main..HEAD --name-only --pretty=format:"" \
+  | sort -u | grep "\.php$" | grep -v "dist/\|\.min\." > app/phan-diff-files.txt
+
+PHAN_IMAGE=$(jq -r '.languages.php.phan.docker_image' sarge.config.json)
+docker run --init --rm \
+  -v "$(pwd)/app:/project" -w /project \
+  "$PHAN_IMAGE" \
+  phan --include-analysis-file-list /project/phan-diff-files.txt
+
+rm app/phan-diff-files.txt
+```
+
+### IDE Diagnostics
+
+SARGE probes for a local IDE API (`sarge.config.json → ide.probe_url`, default port 63342). If reachable, it spawns a background agent to collect diagnostics via `mcp__ide__getDiagnostics` after a 120s indexing wait. Results append to `sitrep.md` automatically — terminal stays free during the wait.
+
+**Configure in `sarge.config.json`:**
+```json
+{
+  "ide": {
+    "probe_url": "http://localhost:63342/api/about",
+    "open_command": "/path/to/your/ide/cli"
+  }
+}
+```
 
 ---
 

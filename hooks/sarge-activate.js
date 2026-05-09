@@ -11,6 +11,8 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
+const { execSync } = require('child_process');
 
 const pluginRoot  = process.env.CLAUDE_PLUGIN_ROOT || path.join(__dirname, '..');
 const configDir   = process.env.CLAUDE_CONFIG_DIR  || path.join(os.homedir(), '.claude');
@@ -18,8 +20,24 @@ const settingsPath  = path.join(configDir, 'settings.json');
 const hooksDir      = path.join(configDir, 'hooks');
 const statuslineSrc  = path.join(pluginRoot, 'hooks', 'sarge-statusline.sh');
 const statuslineDest = path.join(hooksDir, 'sarge-statusline.sh');
+const pathHelperSrc  = path.join(pluginRoot, 'hooks', 'sarge-status-path.sh');
+const pathHelperDest = path.join(hooksDir, 'sarge-status-path.sh');
+const resetSrc       = path.join(pluginRoot, 'hooks', 'sarge-reset.js');
+const resetDest      = path.join(hooksDir, 'sarge-reset.js');
 
 try { fs.writeFileSync(path.join(configDir, '.sarge-active'), 'active', { mode: 0o600 }); } catch (_) {}
+
+// Reset per-repo statusline to green on session start — fresh session, no stale red badge.
+// No-op outside a git repo.
+try {
+  const repoRoot = execSync('git rev-parse --show-toplevel', {
+    stdio: ['ignore', 'pipe', 'ignore']
+  }).toString().trim();
+  if (repoRoot) {
+    const hash = crypto.createHash('sha1').update(repoRoot).digest('hex').slice(0, 12);
+    fs.writeFileSync(path.join(configDir, `.sarge-status-${hash}`), 'green\n', { mode: 0o600 });
+  }
+} catch (_) {}
 
 // Auto-wire statusLine in settings.json on first plugin-install session
 try {
@@ -27,6 +45,14 @@ try {
   if (fs.existsSync(statuslineSrc)) {
     fs.copyFileSync(statuslineSrc, statuslineDest);
     try { fs.chmodSync(statuslineDest, 0o755); } catch (_) {}
+  }
+  if (fs.existsSync(pathHelperSrc)) {
+    fs.copyFileSync(pathHelperSrc, pathHelperDest);
+    try { fs.chmodSync(pathHelperDest, 0o755); } catch (_) {}
+  }
+  if (fs.existsSync(resetSrc)) {
+    fs.copyFileSync(resetSrc, resetDest);
+    try { fs.chmodSync(resetDest, 0o755); } catch (_) {}
   }
   let settings = {};
   if (fs.existsSync(settingsPath)) {

@@ -12,7 +12,12 @@ const SETTINGS_PATH    = path.join(CLAUDE_DIR, 'settings.json');
 const HOOKS_DIR        = path.join(CLAUDE_DIR, 'hooks');
 const STATUSLINE_SRC   = path.join(__dirname, 'hooks', 'sarge-statusline.sh');
 const STATUSLINE_DEST  = path.join(HOOKS_DIR, 'sarge-statusline.sh');
+const PATH_HELPER_SRC  = path.join(__dirname, 'hooks', 'sarge-status-path.sh');
+const PATH_HELPER_DEST = path.join(HOOKS_DIR, 'sarge-status-path.sh');
+const RESET_SRC        = path.join(__dirname, 'hooks', 'sarge-reset.js');
+const RESET_DEST       = path.join(HOOKS_DIR, 'sarge-reset.js');
 const HOOK_COMMAND     = `node "${path.join(__dirname, 'hooks', 'sarge-activate.js')}"`;
+const RESET_COMMAND    = `node "${RESET_DEST}"`;
 
 
 function install() {
@@ -35,6 +40,21 @@ function install() {
   fs.copyFileSync(STATUSLINE_SRC, STATUSLINE_DEST);
   try { fs.chmodSync(STATUSLINE_DEST, 0o755); } catch (_) {}
   console.log('  Hook:  hooks/sarge-statusline.sh');
+
+  // Copy per-repo status path helper (used by statusline + skill writes)
+  if (fs.existsSync(PATH_HELPER_SRC)) {
+    fs.copyFileSync(PATH_HELPER_SRC, PATH_HELPER_DEST);
+    try { fs.chmodSync(PATH_HELPER_DEST, 0o755); } catch (_) {}
+    console.log('  Hook:  hooks/sarge-status-path.sh');
+  }
+
+  // Copy reset script (used by SessionEnd + SessionStart to clear stale red badge)
+  if (fs.existsSync(RESET_SRC)) {
+    fs.copyFileSync(RESET_SRC, RESET_DEST);
+    try { fs.chmodSync(RESET_DEST, 0o755); } catch (_) {}
+    console.log('  Hook:  hooks/sarge-reset.js');
+  }
+
 
   // Wire statusLine in settings.json
   let settings = {};
@@ -77,6 +97,26 @@ function install() {
     console.log('  Hook:  SessionStart → hooks/sarge-activate.js');
   } else {
     console.log('  Hook:  SessionStart already registered (skipped)');
+  }
+
+  // Register SessionEnd hook → reset status to green so next session starts clean
+  if (!settings.hooks.SessionEnd) settings.hooks.SessionEnd = [];
+
+  const resetRegistered = settings.hooks.SessionEnd.some(
+    entry => entry.hooks && entry.hooks.some(h => h.command && h.command.includes('sarge-reset.js'))
+  );
+
+  if (!resetRegistered) {
+    settings.hooks.SessionEnd.push({
+      hooks: [{
+        type: 'command',
+        command: RESET_COMMAND,
+        timeout: 5
+      }]
+    });
+    console.log('  Hook:  SessionEnd → hooks/sarge-reset.js');
+  } else {
+    console.log('  Hook:  SessionEnd already registered (skipped)');
   }
 
   fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2) + '\n');
